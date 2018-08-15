@@ -18,6 +18,10 @@ def filter_instances(project):
 
     return instances
 
+def has_pending_snapshot(volumes):
+    snapshot = list(volumes.snapshots.all())
+    return snapshot and snapshot[0].state=='pending'
+
 @click.group()
 def cli():
     """Commands for instances, volumes and snapshots"""
@@ -137,6 +141,8 @@ def create_snapshot(project):
             print("Stopping {0}..".format(i.id))
             i.stop()
             i.wait_until_stopped()
+            if has_pending_snapshot(v):
+                print("Skipping {0}.. Snapshot already in pending state".format(v.id))
             print("Creating snapshot of {0}..".format(v.id))
             v.create_snapshot(Description='created from cli')
             print("Starting {0}..".format(i.id))
