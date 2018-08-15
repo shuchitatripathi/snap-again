@@ -19,8 +19,57 @@ def filter_instances(project):
     return instances
 
 @click.group()
+def cli():
+    """Commands for instances, volumes and snapshots"""
+
+@cli.group('snapshots')
+def snapshots():
+    "All commands for snapshots"
+
+@snapshots.command('list')
+@click.option('--project', default=None,
+    help='Enter the project name')
+def list_snapshots(project):
+    "List all snapshots"
+
+    instances = filter_instances(project)
+
+    for i in instances:
+        for v in i.volumes.all():
+            for s in v.snapshots.all():
+                print(", ".join((
+                    s.id,
+                    s.state,
+                    s.progress,
+                    s.start_time.strftime("%c")
+                )))
+    return
+
+@cli.group('volumes')
+def volumes():
+    """All commands for volumes"""
+
+@volumes.command('list')
+@click.option('--project', default=None,
+    help='Enter the project name')
+def list_volumes(project):
+    "List all Instances' volumes"
+
+    instances = filter_instances(project)
+
+    for i in instances:
+        for v in i.volumes.all():
+            print(", ".join((
+                v.id,
+                i.id,
+                v.state,
+                str(v.size) + "GiB",
+            )))
+    return
+
+@cli.group('instances')
 def instances():
-    """All Commands for instances"""
+    "All Commands for instances"
 
 @instances.command('list')
 @click.option('--project', default=None,
@@ -66,5 +115,19 @@ def stop_instances(project):
 
     return
 
+@instances.command('createsnap')
+@click.option('--project', default=None,
+    help='Enter the project name')
+def create_snapshot(project):
+    "Create snapshot"
+
+    instances = filter_instances(project)
+
+    for i in instances:
+        for v in i.volumes.all():
+            print("Creating snapshot of {0}..".format(v.id))
+            v.create_snapshot(Description='created from cli')
+    return
+
 if __name__ == '__main__':
-    instances()
+    cli()

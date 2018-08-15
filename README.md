@@ -9,5 +9,6 @@ run the commands:
 
 'pipenv run python snap/shoty.py <command> <subcommand> <parameter>'
 
-command: list, stop, start
+command: instances, volumes, snapshots
+subcommand: list, stop, start
 parameter: --project
