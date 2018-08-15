@@ -90,29 +90,35 @@ def list_instances(project):
     return
 
 @instances.command('start')
-@click.option('--project', help='Starts the instance with project value')
+@click.option('--project', default=None,
+    help='Enter the project name')
 def start_instances(project):
     "Start EC2 instances"
 
     instances = filter_instances(project)
 
-    for i in instances:
-        print("Starting {0}..".format(i.id))
-        i.start()
-
+    try:
+        for i in instances:
+            print("Starting {0}..".format(i.id))
+            i.start()
+    except:
+        print("Could not start {0}..".format(i.id))
     return
 
 @instances.command('stop')
-@click.option('--project', help='Stops the instance with project value')
+@click.option('--project', default=None,
+    help='Enter the project name')
 def stop_instances(project):
     "Stop EC2 instances"
 
     instances = filter_instances(project)
 
-    for i in instances:
-        print("Stopping {0}..".format(i.id))
-        i.stop()
-
+    try:
+        for i in instances:
+            print("Stopping {0}..".format(i.id))
+            i.stop()
+    except:
+        print("Could not stop {0}..".format(i.id))
     return
 
 @instances.command('createsnap')
@@ -125,8 +131,15 @@ def create_snapshot(project):
 
     for i in instances:
         for v in i.volumes.all():
+            print("Stopping {0}..".format(i.id))
+            i.stop()
+            i.wait_until_stopped()
             print("Creating snapshot of {0}..".format(v.id))
             v.create_snapshot(Description='created from cli')
+            print("Starting {0}..".format(i.id))
+            i.start()
+            i.wait_until_running()
+    print("Job's done!!")
     return
 
 if __name__ == '__main__':
